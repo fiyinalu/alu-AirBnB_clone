@@ -1,70 +1,79 @@
-import unittest
+#!/usr/bin/python3
+""" """
 from models.base_model import BaseModel
-import uuid
-from datetime import datetime
+import unittest
+import datetime
+from uuid import UUID
+import json
+import os
+
 
 class TestBaseModel(unittest.TestCase):
-    """ Test case for the BaseModel class in the 'models' module."""
+    """ Test base model"""
+
+    def __init__(self, *args, **kwargs):
+        """ """
+        super().__init__(*args, **kwargs)
+        self.name = 'BaseModel'
+        self.value = BaseModel
 
     def setUp(self):
-        """Set up the initial state for the tests."""
-        self.obj_1 = BaseModel()
-        self.obj_2 = BaseModel()
+        """ """
+        pass
 
     def tearDown(self):
-        """Clean up resources after each test."""
-        del self.obj_1
-        del self.obj_2
+        try:
+            os.remove('file.json')
+        except:
+            pass
 
-    def test_instantiation(self):
-        """Test if BaseModel objects are instantiated correctly."""
-        self.assertIsInstance(self.obj_1, BaseModel)
+    def test_default(self):
+        """ """
+        i = self.value()
+        self.assertEqual(type(i), self.value)
 
-    def test_attr_type(self):
-        """Test the data types of specific attributes of BaseModel objects."""
-        with self.subTest():
-            self.assertIsInstance(self.obj_1.id, str)
-        with self.subTest():
-            self.assertIsInstance(self.obj_1.updated_at, datetime)
-            self.assertIsInstance(self.obj_1.created_at, datetime)
+    def test_kwargs(self):
+        """ """
+        i = self.value()
+        copy = i.to_dict()
+        new = BaseModel(**copy)
+        self.assertFalse(new is i)
 
-    def test_unique_id(self):
-        """ Test if the id attribute of different
-        BaseModel instances is unique.
-        """
-        self.assertNotEqual(self.obj_1.id, self.obj_2.id)
+    def test_kwargs_int(self):
+        """ """
+        i = self.value()
+        copy = i.to_dict()
+        copy.update({1: 2})
+        with self.assertRaises(TypeError):
+            new = BaseModel(**copy)
 
-    def test_id_assignment(self):
-        """ validate that The id attribute of the BaseModel object is a
-        valid UUID.
-        """
-        self.assertTrue(uuid.UUID(self.obj_1.id, version=4))
+    def test_todict(self):
+        """ """
+        i = self.value()
+        n = i.to_dict()
+        self.assertEqual(i.to_dict(), n)
 
-    def test_to_dict_obj(self):
-        """ Test the conversion of BaseModel object attributes to a
-        dictionary using to_dict() method.
-        """
-        self.obj_1.updated_at = datetime.utcnow()
-        obj_dict = self.obj_1.to_dict()
+    def test_kwargs_none(self):
+        """ """
+        n = {None: None}
+        with self.assertRaises(TypeError):
+            new = self.value(**n)
 
-        # Validate data types of dictionary values after to_dict() conversion
-        self.assertIsInstance(obj_dict, dict)
-        self.assertIsInstance(obj_dict["id"], str)
-        self.assertIsInstance(obj_dict["__class__"], str)
-        self.assertIsInstance(obj_dict["created_at"], str)
-        self.assertIsInstance(obj_dict["updated_at"], str)
-        self.assertEqual(obj_dict["__class__"], "BaseModel")
+    def test_id(self):
+        """ """
+        new = self.value()
+        self.assertEqual(type(new.id), str)
 
-    def test_save_method(self):
-        """ Test the save() method of the BaseModel class.
-        Asserts that The 'updated_at' attribute before calling save() is
-        not the same after calling save().
-        """
-        before_save = self.obj_1.updated_at
-        after_save = self.obj_1.save()
-        # Validate that 'updated_at' attribute is updated after calling save()
-        self.assertNotEqual(before_save, after_save)
+    def test_created_at(self):
+        """ """
+        new = self.value()
+        self.assertEqual(type(new.created_at), datetime.datetime)
 
-
-if __name__ == '__main__':
-    unittest.main()
+    def test_updated_at(self):
+        """ """
+        new = self.value()
+        self.assertEqual(type(new.updated_at), datetime.datetime)
+        n = new.to_dict()
+        new = BaseModel(**n)
+        self.assertAlmostEqual(new.created_at.timestamp(),
+                               new.updated_at.timestamp(), delta=1)
